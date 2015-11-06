@@ -24,9 +24,10 @@
 #include <unistd.h>
 #include <math.h>
 
-#include "mt19937ar.h"
-#include "io_png.h"
 #include "utilities.h"
+extern "C"{ 
+#include "iio.h"
+}
 
 #define YUV       0
 #define YCBCR     1
@@ -55,10 +56,13 @@ int load_image(
 	cout << endl << "Read input image...";
 	size_t h, w, c;
 	float *tmp = NULL;
-	tmp = read_png_f32(name, &w, &h, &c);
+   int ih, iw, ic;
+
+   tmp = iio_read_image_float_split(name, &iw, &ih, &ic);
+   w=iw; h=ih; c=ic;
 	if (!tmp)
 	{
-		cout << "error :: " << name << " not found or not a correct png image" << endl;
+		cout << "error :: " << name << " not found or not a correct image" << endl;
 		return EXIT_FAILURE;
 	}
 	cout << "done." << endl;
@@ -112,47 +116,13 @@ int save_image(
     for (unsigned k = 0; k < width * height * chnls; k++)
         tmp[k] = (img[k] > 255.0f ? 255.0f : (img[k] < 0.0f ? 0.0f : img[k]));
 
-    if (write_png_f32(name, tmp, width, height, chnls) != 0)
-    {
-        cout << "... failed to save png image " << name << endl;
-        return EXIT_FAILURE;
-    }
+    iio_save_image_float_split(name, tmp, width, height, chnls);
+
 
     //! Free Memory
     delete[] tmp;
 
     return EXIT_SUCCESS;
-}
-
-
-/**
- * @brief add noise to img
- *
- * @param img : original noise-free image
- * @param img_noisy = img + noise
- * @param sigma : standard deviation of the noise
- *
- * @return none.
- **/
-void add_noise(
-    const vector<float> &img
-,   vector<float> &img_noisy
-,   const float sigma
-){
-    const unsigned size = img.size();
-    if (img_noisy.size() != size)
-        img_noisy.resize(size);
-
-    mt_init_genrand((unsigned long int) time (NULL) + (unsigned long int) getpid());
-
-    for (unsigned k = 0; k < size; k++)
-    {
-        double a = mt_genrand_res53();
-        double b = mt_genrand_res53();
-        double z = (double)(sigma) * sqrt(-2.0 * log(a)) * cos(2.0 * M_PI * b);
-
-        img_noisy[k] =  img[k] + (float) z;
-    }
 }
 
 /**

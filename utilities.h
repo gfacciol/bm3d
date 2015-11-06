@@ -22,13 +22,6 @@ int save_image(
 ,   const unsigned chnls
 );
 
-//! Add noise
-void add_noise(
-    const std::vector<float> &img
-,   std::vector<float> &img_noisy
-,   const float sigma
-);
-
 //! Check if a number is a power of 2
 bool power_of_2(
     const unsigned n
