@@ -1314,7 +1314,7 @@ void precompute_BM(
 			//! To avoid problem
 			if (nSx_r == 1 && table_distance.size() == 0)
 			{
-				cout << "problem size" << endl;
+//				cout << "problem size" << endl;
 				table_distance.push_back(make_pair(0, k_r));
 			}
 
