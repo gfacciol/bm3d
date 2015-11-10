@@ -113,7 +113,7 @@ int run_bm3d(
 
 #ifdef _OPENMP
     cout << "Open MP used" << endl;
-    nb_threads = omp_get_num_procs();
+    nb_threads = omp_get_max_threads();
 
     //! In case where the number of processors isn't a power of 2
     if (!power_of_2(nb_threads))
