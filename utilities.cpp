@@ -114,7 +114,7 @@ int save_image(
 
     //! Check for boundary problems
     for (unsigned k = 0; k < width * height * chnls; k++)
-        tmp[k] = (img[k] > 255.0f ? 255.0f : (img[k] < 0.0f ? 0.0f : img[k]));
+        tmp[k] = img[k]; //(img[k] > 255.0f ? 255.0f : (img[k] < 0.0f ? 0.0f : img[k]));
 
     iio_save_image_float_split(name, tmp, width, height, chnls);
 
