@@ -51,6 +51,7 @@ int main(int argc, char **argv)
   const char *_tau_2D_hard = pick_option(&argc, argv, "tau_2d_hard", "bior");
   const char *_tau_2D_wien = pick_option(&argc, argv, "tau_2d_wien", "dct");
   const char *_color_space = pick_option(&argc, argv, "color_space", "opp");
+  const char *_patch_size = pick_option(&argc, argv, "patch_size", "8");
   const bool useSD_1 = pick_option(&argc, argv, "useSD_hard", NULL) != NULL;
   const bool useSD_2 = pick_option(&argc, argv, "useSD_wien", NULL) != NULL;
 
@@ -75,7 +76,7 @@ int main(int argc, char **argv)
         cout << "color_space is not known." << endl;
         argc = 0; //abort
     };
-
+  const unsigned patch_size = atoi(_patch_size);
 
   //! Check if there is the right call for the algorithm
   if (argc < 4) {
@@ -96,7 +97,7 @@ int main(int argc, char **argv)
 	if(load_image(argv[1], img_noisy, &width, &height, &chnls) != EXIT_SUCCESS)
         return EXIT_FAILURE;
 
-	float          fSigma       = atof(argv[2]);
+	float fSigma = atof(argv[2]);
 
     //! Denoising
     if (run_bm3d(fSigma, img_noisy, img_basic, img_denoised, width, height, chnls,

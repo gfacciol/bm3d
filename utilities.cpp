@@ -25,7 +25,7 @@
 #include <math.h>
 
 #include "utilities.h"
-extern "C"{ 
+extern "C"{
 #include "iio.h"
 }
 
