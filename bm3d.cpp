@@ -70,6 +70,9 @@
  *        Allowed values are DCT and BIOR;
  * @param color_space: Transformation from RGB to YUV. Allowed
  *        values are RGB (do nothing), YUV, YCBCR and OPP.
+ * @param patch_size: overrides the default patch size selection.
+ *        patch_size=0: use default behavior
+ *        patch_size>0: size to be used
  *
  * @return EXIT_FAILURE if color_space has not expected
  *         type, otherwise return EXIT_SUCCESS.
@@ -99,21 +102,22 @@ int run_bm3d(
     // patch_size must be larger than 0
     if (patch_size <= 0)
     {
-        cout << "The patch_size parameter must be larger than 0." << endl;
-        return EXIT_FAILURE;
+        cout << "The patch_size parameter selected automatically." << endl;
+    } else {
+      // patch_size must be a power of 2 if tau_2D_* == BIOR
+      if ((tau_2D_hard == BIOR ||
+           tau_2D_wien == BIOR) &&
+          (patch_size & (patch_size - 1)) != 0)
+      {
+          cout << "The patch_size parameter must be a power of 2 if tau_2D_* == BIOR" << endl;
+          return EXIT_FAILURE;
+      }
     }
-    // patch_size must be a power of 2 if tau_2D_* == BIOR or noise std dev
-    // sigma is smaller than 40.f
-    if ((sigma < 40.f ||
-         tau_2D_hard == BIOR ||
-         tau_2D_wien == BIOR) &&
-        (patch_size & (patch_size - 1)) != 0)
-    {
-        cout << "The patch_size parameter must be a power of 2 if "
-                "tau_2D_* == BIOR or noise std dev sigma < 40.f" << endl;
-        return EXIT_FAILURE;
-    }
-    const unsigned kHard = patch_size, kWien = patch_size;
+    //! Overrides size if patch_size>0, else default behavior (8 or 12 depending on test)
+    const unsigned kHard = patch_size > 0 ? patch_size : 
+       ((tau_2D_hard == BIOR || sigma < 40.f) ? 8 : 12);
+    const unsigned kWien = patch_size > 0 ? patch_size : 
+       ((tau_2D_wien == BIOR || sigma < 40.f) ? 8 : 12);
 
     //! Check memory allocation
     if (img_basic.size() != img_noisy.size())
