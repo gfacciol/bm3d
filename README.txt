@@ -58,7 +58,7 @@ with :
      standard variation for the weighted aggregation (useSD2 = 1)
 - ColorSpace: choice of the color space on which the image will be applied. 
      you can choose the colorspace for both steps between : rgb, yuv, ycbcr and opp.
-
+- patch_size: overrides the default patch size
  
 Example, run
 ./BM3Ddenoising cinput.png 10 ImDenoised.png ImBasic.png -useSD_wien \
