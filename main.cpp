@@ -51,9 +51,10 @@ int main(int argc, char **argv)
   const char *_tau_2D_hard = pick_option(&argc, argv, "tau_2d_hard", "bior");
   const char *_tau_2D_wien = pick_option(&argc, argv, "tau_2d_wien", "dct");
   const char *_color_space = pick_option(&argc, argv, "color_space", "opp");
-  const char *_patch_size = pick_option(&argc, argv, "patch_size", "0");   // >0: overrides default 
+  const char *_patch_size = pick_option(&argc, argv, "patch_size", "0"); // >0: overrides default
   const bool useSD_1 = pick_option(&argc, argv, "useSD_hard", NULL) != NULL;
   const bool useSD_2 = pick_option(&argc, argv, "useSD_wien", NULL) != NULL;
+  const bool verbose = pick_option(&argc, argv, "verbose", NULL) != NULL;
 
 	//! Check parameters
 	const unsigned tau_2D_hard  = (strcmp(_tau_2D_hard, "dct" ) == 0 ? DCT :
@@ -75,9 +76,16 @@ int main(int argc, char **argv)
     if (color_space == NONE) {
         cout << "color_space is not known." << endl;
         argc = 0; //abort
-    } ;
-    printf("%s\n", _patch_size);
-  const unsigned patch_size = atoi(_patch_size);
+    };
+
+  const int patch_size = atoi(_patch_size);
+    if (patch_size < 0)
+    {
+      cout << "The patch_size parameter must not be negative." << endl;
+      return EXIT_FAILURE;
+    } else {
+      const unsigned patch_size = (unsigned) patch_size;
+    }
 
   //! Check if there is the right call for the algorithm
   if (argc < 4) {
@@ -86,8 +94,9 @@ int main(int argc, char **argv)
              [-useSD_hard]\n\
              [-tau_2d_wien {dct,bior} (default: dct)]\n\
              [-useSD_wien]\n\
-             [-color_space {rgb,yuv,opp,ycbcr} (default: opp)] \n\
-             [-patch_size {0,8,...} (default: 0, auto size, 8 or 12 depending on sigma)]" << endl;
+             [-color_space {rgb,yuv,opp,ycbcr} (default: opp)]\n\
+             [-patch_size {0,8,...} (default: 0, auto size, 8 or 12 depending on sigma)]\n\
+             [-verbose]" << endl;
     return EXIT_FAILURE;
   }
 
@@ -103,7 +112,8 @@ int main(int argc, char **argv)
 
     //! Denoising
     if (run_bm3d(fSigma, img_noisy, img_basic, img_denoised, width, height, chnls,
-                 useSD_1, useSD_2, tau_2D_hard, tau_2D_wien, color_space, patch_size)
+                 useSD_1, useSD_2, tau_2D_hard, tau_2D_wien, color_space, patch_size,
+                 verbose)
         != EXIT_SUCCESS)
         return EXIT_FAILURE;
 

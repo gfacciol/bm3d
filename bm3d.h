@@ -22,6 +22,7 @@ int run_bm3d(
 ,   const unsigned tau_2D_wien
 ,   const unsigned color_space
 ,   const unsigned patch_size = 0
+,   const bool verbose = false
 );
 
 //! 1st step of BM3D

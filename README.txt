@@ -59,7 +59,8 @@ with :
 - ColorSpace: choice of the color space on which the image will be applied. 
      you can choose the colorspace for both steps between : rgb, yuv, ycbcr and opp.
 - patch_size: overrides the default patch size
- 
+- verbose: print additional information
+
 Example, run
 ./BM3Ddenoising cinput.png 10 ImDenoised.png ImBasic.png -useSD_wien \
    -tau_2d_hard bior -tau_2d_wien dct -color_space opp
