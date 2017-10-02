@@ -73,6 +73,7 @@
  * @param patch_size: overrides the default patch size selection.
  *        patch_size=0: use default behavior
  *        patch_size>0: size to be used
+ * @param verbose: if true, print additional information;
  *
  * @return EXIT_FAILURE if color_space has not expected
  *         type, otherwise return EXIT_SUCCESS.
@@ -91,6 +92,7 @@ int run_bm3d(
 ,   const unsigned tau_2D_wien
 ,   const unsigned color_space
 ,   const unsigned patch_size
+,   const bool verbose
 ){
     //! Parameters
     const unsigned nHard = 16; //! Half size of the search window
@@ -100,9 +102,9 @@ int run_bm3d(
     const unsigned pHard = 3;
     const unsigned pWien = 3;
     // patch_size must be larger than 0
-    if (patch_size <= 0)
+    if (patch_size == 0)
     {
-        cout << "The patch_size parameter selected automatically." << endl;
+        if (verbose) cout << "The patch_size parameter selected automatically." << endl;
     } else {
       // patch_size must be a power of 2 if tau_2D_* == BIOR
       if ((tau_2D_hard == BIOR ||
@@ -114,9 +116,9 @@ int run_bm3d(
       }
     }
     //! Overrides size if patch_size>0, else default behavior (8 or 12 depending on test)
-    const unsigned kHard = patch_size > 0 ? patch_size : 
+    const unsigned kHard = patch_size > 0 ? patch_size :
        ((tau_2D_hard == BIOR || sigma < 40.f) ? 8 : 12);
-    const unsigned kWien = patch_size > 0 ? patch_size : 
+    const unsigned kWien = patch_size > 0 ? patch_size :
        ((tau_2D_wien == BIOR || sigma < 40.f) ? 8 : 12);
 
     //! Check memory allocation
@@ -141,10 +143,14 @@ int run_bm3d(
         nb_threads = closest_power_of_2(nb_threads);
 #endif
 
-    cout << endl << "Number of threads which will be used: " << nb_threads;
+    if (verbose)
+    {
+        cout << endl << "Number of threads which will be used: " << nb_threads;
 #ifdef _OPENMP
-    cout << " (real available cores: " << omp_get_num_procs() << ")" << endl;
+        cout << " (real available cores: " << omp_get_num_procs() << ")";
 #endif
+        cout << endl;
+    }
 
     //! Allocate plan for FFTW library
     fftwf_plan plan_2d_for_1[nb_threads];
@@ -173,11 +179,11 @@ int run_bm3d(
         }
 
         //! Denoising, 1st Step
-        cout << "step 1...";
+        if (verbose) cout << "step 1...";
         bm3d_1st_step(sigma, img_sym_noisy, img_sym_basic, w_b, h_b, chnls, nHard,
                       kHard, NHard, pHard, useSD_h, color_space, tau_2D_hard,
                       &plan_2d_for_1[0], &plan_2d_for_2[0], &plan_2d_inv[0]);
-        cout << "done." << endl;
+        if (verbose) cout << "done." << endl;
 
         //! To avoid boundaries problem
         for (unsigned c = 0; c < chnls; c++)
@@ -203,11 +209,11 @@ int run_bm3d(
         }
 
         //! Denoising, 2nd Step
-        cout << "step 2...";
+        if (verbose) cout << "step 2...";
         bm3d_2nd_step(sigma, img_sym_noisy, img_sym_basic, img_sym_denoised,
                 w_b, h_b, chnls, nWien, kWien, NWien, pWien, useSD_w, color_space,
                 tau_2D_wien, &plan_2d_for_1[0], &plan_2d_for_2[0], &plan_2d_inv[0]);
-        cout << "done." << endl;
+        if (verbose) cout << "done." << endl;
 
         //! Obtention of img_denoised
         for (unsigned c = 0; c < chnls; c++)
