@@ -104,14 +104,14 @@ int run_bm3d(
     // patch_size must be larger than 0
     if (patch_size == 0)
     {
-        if (verbose) cout << "The patch_size parameter selected automatically." << endl;
+        if (verbose) cout << "Parameter patch_size is selected automatically (8 or 12)." << endl;
     } else {
       // patch_size must be a power of 2 if tau_2D_* == BIOR
       if ((tau_2D_hard == BIOR ||
            tau_2D_wien == BIOR) &&
           (patch_size & (patch_size - 1)) != 0)
       {
-          cout << "The patch_size parameter must be a power of 2 if tau_2D_* == BIOR" << endl;
+          cout << "Parameter patch_size must be a power of 2 if tau_2D_* == BIOR" << endl;
           return EXIT_FAILURE;
       }
     }
@@ -133,9 +133,7 @@ int run_bm3d(
 
     //! Check if OpenMP is used or if number of cores of the computer is > 1
     unsigned nb_threads = 1;
-
 #ifdef _OPENMP
-    cout << "Open MP used" << endl;
     nb_threads = omp_get_max_threads();
 
     //! In case where the number of processors isn't a power of 2
@@ -145,7 +143,11 @@ int run_bm3d(
 
     if (verbose)
     {
-        cout << endl << "Number of threads which will be used: " << nb_threads;
+        cout << "OpenMP multithreading is";
+#ifndef _OPENMP
+        cout << " not";
+#endif
+        cout << " activated. Number of threads: " << nb_threads;
 #ifdef _OPENMP
         cout << " (real available cores: " << omp_get_num_procs() << ")";
 #endif
@@ -179,11 +181,11 @@ int run_bm3d(
         }
 
         //! Denoising, 1st Step
-        if (verbose) cout << "step 1...";
+        if (verbose) cout << "BM3D 1st step...";
         bm3d_1st_step(sigma, img_sym_noisy, img_sym_basic, w_b, h_b, chnls, nHard,
                       kHard, NHard, pHard, useSD_h, color_space, tau_2D_hard,
                       &plan_2d_for_1[0], &plan_2d_for_2[0], &plan_2d_inv[0]);
-        if (verbose) cout << "done." << endl;
+        if (verbose) cout << "is done." << endl;
 
         //! To avoid boundaries problem
         for (unsigned c = 0; c < chnls; c++)
@@ -209,11 +211,11 @@ int run_bm3d(
         }
 
         //! Denoising, 2nd Step
-        if (verbose) cout << "step 2...";
+        if (verbose) cout << "BM3D 2nd step...";
         bm3d_2nd_step(sigma, img_sym_noisy, img_sym_basic, img_sym_denoised,
                 w_b, h_b, chnls, nWien, kWien, NWien, pWien, useSD_w, color_space,
                 tau_2D_wien, &plan_2d_for_1[0], &plan_2d_for_2[0], &plan_2d_inv[0]);
-        if (verbose) cout << "done." << endl;
+        if (verbose) cout << "is done." << endl;
 
         //! Obtention of img_denoised
         for (unsigned c = 0; c < chnls; c++)
@@ -251,7 +253,7 @@ int run_bm3d(
             }
 
         //! denoising : 1st Step
-        cout << "step 1...";
+        if (verbose) cout << "BM3D 1st step...";
         #pragma omp parallel shared(sub_noisy, sub_basic, w_table, h_table, \
                                     plan_2d_for_1, plan_2d_for_2, plan_2d_inv)
         {
@@ -264,7 +266,7 @@ int run_bm3d(
                               &plan_2d_for_2[n], &plan_2d_inv[n]);
             }
         }
-        cout << "done." << endl;
+        if (verbose) cout << "is done." << endl;
 
         sub_divide(img_basic, sub_basic, w_table, h_table,
                                                 width, height, chnls, 2 * nHard, false);
@@ -286,7 +288,7 @@ int run_bm3d(
             }
 
         //! Denoising: 2nd Step
-        cout << "step 2...";
+        if (verbose) cout << "BM3D 2nd step...";
         #pragma omp parallel shared(sub_noisy, sub_basic, sub_denoised,  w_table, \
                                     h_table, plan_2d_for_1, plan_2d_for_2,  \
                                     plan_2d_inv)
@@ -300,7 +302,7 @@ int run_bm3d(
                               &plan_2d_for_2[n], &plan_2d_inv[n]);
             }
         }
-        cout << "done." << endl;
+        if (verbose) cout << "is done." << endl;
 
         //! Reconstruction of the image
         sub_divide(img_denoised, sub_denoised, w_table, h_table,
