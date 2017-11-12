@@ -4,6 +4,13 @@
 #include <fftw3.h>
 #include <vector>
 
+#ifdef _OPENMP
+    #include <omp.h>
+    #define _NO_OPENMP 0
+#else
+    #define _NO_OPENMP 1
+#endif
+
 /** ------------------ **/
 /** - Main functions - **/
 /** ------------------ **/
@@ -22,6 +29,7 @@ int run_bm3d(
 ,   const unsigned tau_2D_wien
 ,   const unsigned color_space
 ,   const unsigned patch_size = 0
+,   const unsigned num_threads = 0
 ,   const bool verbose = false
 );
 
