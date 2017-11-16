@@ -120,15 +120,15 @@ int main(int argc, char **argv)
 
 	float fSigma = atof(argv[2]);
 
-    //! Denoising
-    if (run_bm3d(fSigma, img_noisy, img_basic, img_denoised, width, height, chnls,
+   //! Denoising
+   if (run_bm3d(fSigma, img_noisy, img_basic, img_denoised, width, height, chnls,
                  useSD_1, useSD_2, tau_2D_hard, tau_2D_wien, color_space, patch_size,
                  nb_threads, verbose)
         != EXIT_SUCCESS)
         return EXIT_FAILURE;
 
-	//! save noisy, denoised and differences images
-	cout << endl << "Save images...";
+   //! save noisy, denoised and differences images
+   cout << endl << "Save images...";
 
    if (argc > 4)
    if (save_image(argv[4], img_basic, width, height, chnls) != EXIT_SUCCESS)

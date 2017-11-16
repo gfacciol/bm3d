@@ -134,8 +134,7 @@ int run_bm3d(
 #ifndef _OPENMP
     if (_nb_threads > 1)
     {
-        cout << "Parameter _nb_threads must not exceed 1 if OpenMP multithreading is not available." << endl;
-        return EXIT_FAILURE;
+        cout << "Parameter _nb_threads > 1 has no effect if OpenMP multithreading is not available." << endl;
     }
     _nb_threads = 1;
 #endif
@@ -145,8 +144,7 @@ int run_bm3d(
 
     if (_nb_threads > avail_nb_cores)
     {
-        cout << "Parameter _nb_threads must not exceed the number of real cores." << endl;
-        return EXIT_FAILURE;
+        cout << "Parameter _nb_threads should not exceed the number of real cores." << endl;
     // if not otherwise specified or if not all existing threads are available use
     // at least all available threads
     } else if (_nb_threads > avail_nb_threads || _nb_threads == 0) {
