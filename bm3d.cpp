@@ -36,13 +36,10 @@
 #define BIOR      5
 #define HADAMARD  6
 
-#ifdef _OPENMP
-    #include <omp.h>
-#endif
 
- using namespace std;
+using namespace std;
 
- bool ComparaisonFirst(pair<float,unsigned> pair1, pair<float,unsigned> pair2)
+bool ComparaisonFirst(pair<float,unsigned> pair1, pair<float,unsigned> pair2)
 {
 	return pair1.first < pair2.first;
 }
@@ -92,6 +89,7 @@ int run_bm3d(
 ,   const unsigned tau_2D_wien
 ,   const unsigned color_space
 ,   const unsigned patch_size
+,   const unsigned nb_threads
 ,   const bool verbose
 ){
     //! Parameters
@@ -132,35 +130,57 @@ int run_bm3d(
         != EXIT_SUCCESS) return EXIT_FAILURE;
 
     //! Check if OpenMP is used or if number of cores of the computer is > 1
-    unsigned nb_threads = 1;
-#ifdef _OPENMP
-    nb_threads = omp_get_max_threads();
-
-    //! In case where the number of processors isn't a power of 2
-    if (!power_of_2(nb_threads))
-        nb_threads = closest_power_of_2(nb_threads);
-#endif
-
+    unsigned _nb_threads = nb_threads;
     if (verbose)
     {
         cout << "OpenMP multithreading is";
 #ifndef _OPENMP
         cout << " not";
 #endif
-        cout << " activated. Number of threads: " << nb_threads;
+        cout << " available." << endl;
+    }
+
+    // set _nb_threads
 #ifdef _OPENMP
-        cout << " (real available cores: " << omp_get_num_procs() << ")";
+    unsigned avail_nb_threads = omp_get_max_threads();
+    unsigned avail_nb_cores = omp_get_num_procs();
+
+    // if specified number exceeds available threads of if not specified at all
+    // at least use all available threads
+    if (_nb_threads > avail_nb_threads || _nb_threads == 0)
+    {
+        // log if specified number of threads exeeds number of real cores
+        if (_nb_threads > avail_nb_cores)
+            cout << "Parameter nb_threads should not exceed the number of real cores." << endl;
+        _nb_threads = avail_nb_threads;
+    }
+    // In case the number of threads is not a power of 2
+    if (!power_of_2(_nb_threads))
+        _nb_threads = closest_power_of_2(_nb_threads);
+#else
+    if (_nb_threads > 1)
+    {
+        cout << "Parameter nb_threads has no effect if OpenMP multithreading is not available." << endl;
+    }
+    _nb_threads = 1;
+#endif
+
+    if (verbose)
+    {
+        cout << "Working threads: " << _nb_threads;
+#ifdef _OPENMP
+        cout << " (Must be 2^n) (Total available threads/real cores: " << avail_nb_threads << "/" << avail_nb_cores << ")";
 #endif
         cout << endl;
     }
 
     //! Allocate plan for FFTW library
-    fftwf_plan plan_2d_for_1[nb_threads];
-    fftwf_plan plan_2d_for_2[nb_threads];
-    fftwf_plan plan_2d_inv[nb_threads];
+    fftwf_plan plan_2d_for_1[_nb_threads];
+    fftwf_plan plan_2d_for_2[_nb_threads];
+    fftwf_plan plan_2d_inv[_nb_threads];
 
     //! In the simple case
-    if (nb_threads == 1)
+    if (_nb_threads == 1)
     {
         //! Add boundaries and symetrize them
         const unsigned h_b = height + 2 * nHard;
@@ -230,18 +250,18 @@ int run_bm3d(
     //! If more than 1 threads are used
     else
     {
-        //! Cut the image in nb_threads parts
-        vector<vector<float> > sub_noisy(nb_threads);
-        vector<vector<float> > sub_basic(nb_threads);
-        vector<vector<float> > sub_denoised(nb_threads);
-        vector<unsigned> h_table(nb_threads);
-        vector<unsigned> w_table(nb_threads);
+        //! Cut the image in _nb_threads parts
+        vector<vector<float> > sub_noisy(_nb_threads);
+        vector<vector<float> > sub_basic(_nb_threads);
+        vector<vector<float> > sub_denoised(_nb_threads);
+        vector<unsigned> h_table(_nb_threads);
+        vector<unsigned> w_table(_nb_threads);
         sub_divide(img_noisy, sub_noisy, w_table, h_table, width, height, chnls,
                                                                         2 * nWien, true);
 
         //! Allocating Plan for FFTW process
         if (tau_2D_hard == DCT)
-            for (unsigned n = 0; n < nb_threads; n++)
+            for (unsigned n = 0; n < _nb_threads; n++)
             {
                 const unsigned nb_cols = ind_size(w_table[n] - kHard + 1, nHard, pHard);
                 allocate_plan_2d(&plan_2d_for_1[n], kHard, FFTW_REDFT10,
@@ -258,7 +278,7 @@ int run_bm3d(
                                     plan_2d_for_1, plan_2d_for_2, plan_2d_inv)
         {
             #pragma omp for schedule(dynamic) nowait
-            for (unsigned n = 0; n < nb_threads; n++)
+            for (unsigned n = 0; n < _nb_threads; n++)
             {
                 bm3d_1st_step(sigma, sub_noisy[n], sub_basic[n], w_table[n],
                               h_table[n], chnls, nHard, kHard, NHard, pHard, useSD_h,
@@ -276,7 +296,7 @@ int run_bm3d(
 
         //! Allocating Plan for FFTW process
         if (tau_2D_wien == DCT)
-            for (unsigned n = 0; n < nb_threads; n++)
+            for (unsigned n = 0; n < _nb_threads; n++)
             {
                 const unsigned nb_cols = ind_size(w_table[n] - kWien + 1, nWien, pWien);
                 allocate_plan_2d(&plan_2d_for_1[n], kWien, FFTW_REDFT10,
@@ -294,7 +314,7 @@ int run_bm3d(
                                     plan_2d_inv)
         {
             #pragma omp for schedule(dynamic) nowait
-            for (unsigned n = 0; n < nb_threads; n++)
+            for (unsigned n = 0; n < _nb_threads; n++)
             {
                 bm3d_2nd_step(sigma, sub_noisy[n], sub_basic[n], sub_denoised[n],
                               w_table[n], h_table[n], chnls, nWien, kWien, NWien, pWien,
@@ -319,7 +339,7 @@ int run_bm3d(
 
     //! Free Memory
     if (tau_2D_hard == DCT || tau_2D_wien == DCT)
-        for (unsigned n = 0; n < nb_threads; n++)
+        for (unsigned n = 0; n < _nb_threads; n++)
         {
             fftwf_destroy_plan(plan_2d_for_1[n]);
             fftwf_destroy_plan(plan_2d_for_2[n]);

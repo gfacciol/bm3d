@@ -59,6 +59,7 @@ with :
 - ColorSpace: choice of the color space on which the image will be applied. 
      you can choose the colorspace for both steps between : rgb, yuv, ycbcr and opp.
 - patch_size: overrides the default patch size
+- nb_threads: specifies the number of working threads
 - verbose: print additional information
 
 Example, run
