@@ -1062,7 +1062,7 @@ void wiener_filtering_hadamard(
             float value = group_3D_est[dc + k] * group_3D_est[dc + k] * coef;
             value /= (value + sigma_table[c] * sigma_table[c]);
             group_3D_est[k + dc] = group_3D_img[k + dc] * value * coef;
-            weight_table[c] += value;
+            weight_table[c] += value*value;
         }
     }
 
