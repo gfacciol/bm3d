@@ -1080,9 +1080,9 @@ void wiener_filtering_hadamard(
         for (unsigned k = nSx_r; k < kWien_2 * nSx_r; k++)
 #endif
 		{
-			float value = group_3D_est[dc + k] * group_3D_est[dc + k];
+			float value = group_3D_est[dc + k] * group_3D_est[dc + k] * coef;
 			value /= (value + sigma_table[c] * sigma_table[c]);
-			group_3D_est[k + dc] = group_3D_vid[k + dc] * value;
+			group_3D_est[k + dc] = group_3D_img[k + dc] * value * coef;
 			weight_table[c] += (value*value);
 		}
 #ifndef DCWIENER
