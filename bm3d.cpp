@@ -45,7 +45,7 @@
  * http://www.ipol.im/pub/art/2012/l-bm3d/, not in the original paper. 
  */
 
-//#define DCTHRESH
+#define DCTHRESH
 #define DCWIENER
 //#define MTRICK
 
@@ -1007,7 +1007,7 @@ void ht_filtering_hadamard(
 #ifdef DCTHRESH
             if (fabs(group_3D[k + dc]) > T)
 #else
-            if (k < nSx_r || fabs(group_3D[k + dc]) > T)
+            if (k < 1 || fabs(group_3D[k + dc]) > T)
 #endif
                 weight_table[c]++;
             else
@@ -1077,7 +1077,10 @@ void wiener_filtering_hadamard(
 #ifdef DCWIENER
 		for (unsigned k = 0; k < kWien_2 * nSx_r; k++)
 #else
-        for (unsigned k = nSx_r; k < kWien_2 * nSx_r; k++)
+        group_3D_est[dc] = group_3D_img[dc] * coef;
+        // Add the weight corresponding to the DC components that were not passed through the Wiener filter
+        weight_table[c] += 1; 
+        for (unsigned k = 1; k < kWien_2 * nSx_r; k++)
 #endif
 		{
 			float value = group_3D_est[dc + k] * group_3D_est[dc + k] * coef;
@@ -1085,10 +1088,6 @@ void wiener_filtering_hadamard(
 			group_3D_est[k + dc] = group_3D_img[k + dc] * value * coef;
 			weight_table[c] += (value*value);
 		}
-#ifndef DCWIENER
-        // Add the weight corresponding to the DC components that were not thresholded
-        weight_table[c] += nSx_r; 
-#endif
     }
 
     //! Process of the Welsh-Hadamard inverse transform
