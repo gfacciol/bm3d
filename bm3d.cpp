@@ -45,7 +45,7 @@
  * http://www.ipol.im/pub/art/2012/l-bm3d/, not in the original paper. 
  */
 
-#define DCTHRESH
+//#define DCTHRESH
 #define DCWIENER
 //#define MTRICK
 
