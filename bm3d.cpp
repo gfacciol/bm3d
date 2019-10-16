@@ -1372,7 +1372,7 @@ void precompute_BM(
                                   , k_r + di * width + dj));
 
                 for (int di = - (int) nHW; di < 0; di++)
-                    if (sum_table[-dj + nHW + (-di) * Ns][k_r] < threshold)
+                    if (sum_table[-dj + nHW + (-di) * Ns][k_r + di * width + dj] < threshold)
                         table_distance.push_back(make_pair(
                                     sum_table[-dj + nHW + (-di) * Ns][k_r + di * width + dj]
                                   , k_r + di * width + dj));
