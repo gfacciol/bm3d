@@ -1246,7 +1246,8 @@ void preProcess(
 }
 
 /**
- * @brief Precompute Bloc Matching (distance inter-patches)
+ * @brief Precompute Block Matching (distance inter-patches)
+ * applying the Haar filter to compute raw, noisy pixel distances (eq 4). 
  *
  * @param patch_table: for each patch in the image, will contain
  * all coordonnate of its similar patches
