@@ -1405,6 +1405,11 @@ void precompute_BM(
 			if (nSx_r == 1)
 				patch_table[k_r].push_back(table_distance[0].second);
 #endif
+            //! If more than NHW patches EXACTLY equal to the reference patch exist,
+            //! it is possible that the patch is not in its nearest neighbor list
+            //! (despite a distance of 0), therefore we enfore here that a patch is
+            //! in its nearest neighbor list
+            patch_table[k_r][0] = k_r;
         }
     }
 }
@@ -1451,9 +1456,3 @@ void sd_weighting(
         weight_table[c] = (res > 0.0f ? 1.0f / sqrtf(res) : 0.0f);
     }
 }
-
-
-
-
-
-
